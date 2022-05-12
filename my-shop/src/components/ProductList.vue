@@ -9,6 +9,12 @@
     <van-grid-item
       v-for="item in productsData"
       :key="item.id"
+      :to="{
+        name: 'product',
+        params: {
+          productId: item.id
+        }
+      }"
       >
     <!-- 商品图 -->
     <van-image

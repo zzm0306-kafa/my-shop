@@ -23,7 +23,8 @@ const routes = [
     path: '/product:productId',
     name: 'product',
     // 通过路由懒加载进行定位
-    component: () => import('@/view/product/index.vue')
+    component: () => import('@/view/product/index.vue'),
+    props: true
   },
   {
     path: '/category',
