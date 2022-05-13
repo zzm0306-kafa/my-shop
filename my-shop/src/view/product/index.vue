@@ -20,7 +20,7 @@
         <template #title>
           <div class="price">
             <!-- 商品价格 -->
-            <span>￥{{ storeInfo?.price }}</span>
+            <span>￥{{ specDetail?.price }}</span>
             <!-- 分享按钮图标 -->
             <van-icon name="share-o" size="20" class="share"></van-icon>
           </div>
@@ -29,8 +29,8 @@
         </template>
         <!-- 2.2商品其他信息 -->
         <template #label>
-          <span>原价:￥{{ storeInfo?.ot_price }}</span>
-          <span>库存:{{ storeInfo?.stock + storeInfo?.unit_name }}</span>
+          <span>原价:￥{{ specDetail?.ot_price }}</span>
+          <span>库存:{{ specDetail?.stock + storeInfo?.unit_name }}</span>
           <span>销量:{{ storeInfo?.fsales }}</span>
         </template>
       </van-cell>
@@ -38,11 +38,55 @@
       <van-cell
         class="sku_window"
         is-link
+        @click="showPopup"
       >
-       <template #title>
-          <span>已选择: 6G,128G</span>
+        <template #title>
+          <span>已选择: {{ sku }}</span>
         </template>
       </van-cell>
+      <!-- 弹出框 -->
+      <van-popup
+        v-model:show="specState.show"
+        position="bottom"
+        round
+        class="popup"
+        >
+        <van-cell-group>
+          <!--1.头部信息  -->
+          <van-cell class="popup-header">
+            <!-- 1.1图片 -->
+            <img :src="specDetail?.image" alt="">
+            <!-- 1.2信息内容区 -->
+            <div class="info">
+              <!-- 标题 -->
+              <p class="title" v-text="storeInfo?.store_name"></p>
+              <p class="price">￥{{ specDetail?.price }}</p>
+              <p class="stock">库存: {{ specDetail?.stock }}</p>
+            </div>
+          </van-cell>
+          <!-- 2.规格区 -->
+          <van-cell
+            class="spec"
+            v-for="(attr, specIndex) in productAttr"
+            :key="attr.id"
+          >
+            <p v-text="attr.attr_name"></p>
+            <span 
+              class="tag"
+              :class="{ active: specState.spec[specIndex] === tag }"
+              v-for="tag in attr.attr_values"
+              :key="tag"
+              v-text="tag"
+              @click="handleTagChage(tag, specIndex)"
+            >
+            </span>
+          </van-cell>
+          <!-- 3.购买数量区 -->
+          <van-cell title="数量">
+            <van-stepper v-model="specState.buyCount" :max="8" />
+          </van-cell>
+        </van-cell-group>
+        </van-popup> 
     </van-tab>
     <van-tab title="评价" class="comment">
       <van-cell-group>
@@ -82,7 +126,7 @@
 <script setup>
 import { getProductDeatail } from '@/api/product'
 import { computed } from '@vue/reactivity'
-import { ref } from 'vue'
+import { ref, reactive } from 'vue'
 import { onBeforeRouteUpdate, useRouter } from 'vue-router'
 import CommentItem from '../../components/CommentItem.vue'
 // 路由跳转
@@ -110,6 +154,7 @@ const initProductDeatail = async (productId) => {
     })
   }
   productDeatails.value = data.data
+  initSpec(data.data.productAttr)
   console.log(data)
 }
 initProductDeatail(productId)
@@ -135,6 +180,31 @@ onBeforeRouteUpdate((to) => {
   document.documentElement.scrollTop = 0
   initProductDeatail(to.params.productId)
 })
+// 4.对商品信息选择规格弹出方层处理
+const specState = reactive({
+  show: false,// 弹出层的显示状态
+  spec: [],// 选中的规格数据
+  buyCount: 0 // 购买个数
+})
+//  1.规格数据处理
+const productAttr = computed(() => productDeatails.value.productAttr)
+const productValue = computed(() => productDeatails.value.productValue)
+// sku 数据处理
+const sku = computed(() => specState.spec.toString())
+// 根据 sku 获取对应商品信息
+const specDetail = computed(() => productValue.value?.[sku.value])
+// 初始化规划默认选中数据
+const initSpec = (spec) => {
+  specState.spec = spec.map(item => item.attr_values[0])
+}
+// 显示隐藏弹出层
+const showPopup = () => {
+  specState.show = !specState.show
+}
+// 对tag标签进行切换
+const handleTagChage = (tag, specIndex) => {
+  specState.spec[specIndex] = tag
+}
 </script>
 <style lang="scss" scoped>
 // 为了避免问题，添加 fixed 样式权重
@@ -244,6 +314,65 @@ onBeforeRouteUpdate((to) => {
     width: 100%;
     :deep(img) {
       width: 100%;
+    }
+  }
+  // 弹出层
+  :deep(.popup) {
+    margin-bottom: 50px;
+    max-height: 60%;
+    // 弹出层头部
+    .popup-header {
+      .van-cell__value {
+        display: flex;
+        img {
+          width: 75px;
+          height: 75px;
+          align-self: center;
+        }
+        .info {
+          padding: 10px;
+        }
+        .title {
+          font-size: 16px;
+          font-weight: 700;
+          display: -webkit-box;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+          -webkit-line-clamp: 1;
+          margin-bottom: 10px;
+        }
+        .price {
+          font-size: 16px;
+          color: #F2270C;
+        }
+        .stock {
+          font-size: 12px;
+          color: #999;
+        }
+      }
+    }
+    // 规格区
+    .spec {
+      p {
+        font-size: 16px;
+        font-weight: 700;
+        margin-bottom: 5px;
+      }
+      .tag {
+        display: inline-block;
+        min-width: 35px;
+        padding: 0 12px;
+        border: 1px solid #ccc;
+        border-radius: 20px;
+        margin-right: 10px;
+        background-color: #F2F2F2;
+        text-align: center;
+      }
+      .tag.active {
+        border-color: #F2270C;
+        color: #F2270C;
+        background-color: #FCEDEB;
+      }
     }
   }
 }

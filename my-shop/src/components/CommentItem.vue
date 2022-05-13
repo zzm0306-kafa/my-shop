@@ -32,7 +32,7 @@ const { reply } = defineProps({
 })
 const star = computed(() => Number(reply?.star))
 // 评论图片
-const pic = computed(() => reply?.pics)
+const pics = computed(() => reply?.pics)
 </script>
 <style lang="scss" scoped>
 // 商品点评
