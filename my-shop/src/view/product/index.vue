@@ -93,7 +93,14 @@
         <van-cell
           is-link
           :title="replyInfo"
-          :value="replyRate"></van-cell>
+          :value="replyRate"
+          :to="{
+            name: 'comment',
+            params: {
+              productId: storeInfo?.id
+            }
+          }"
+          ></van-cell>
         <comment-item v-if="replyCount !== 0" :reply="reply"/>
       </van-cell-group>
     </van-tab>
@@ -155,7 +162,7 @@ const initProductDeatail = async (productId) => {
   }
   productDeatails.value = data.data
   initSpec(data.data.productAttr)
-  console.log(data)
+  // console.log(data)
 }
 initProductDeatail(productId)
 // 存储商品信息数据

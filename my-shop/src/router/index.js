@@ -27,6 +27,13 @@ const routes = [
     props: true
   },
   {
+    path: '/comment:productId',
+    name: 'comment',
+    // 通过路由懒加载进行定位
+    component: () => import('@/view/comment/index.vue'),
+    props: true
+  },
+  {
     path: '/category',
     name: 'category',
     component: () => import('@/view/category/index.vue')
